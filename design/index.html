@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DekaBridge Interface</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const data = {
+      conversations: {
+        'sidebar-convo-title-1': { title: 'Discussion of important details', content: ['Hello! How can I help you get started today?', "I'd like to review an existing proposal.", "Great. I'll pull up the last saved proposal draft. Would you like to make changes or compare options?"] },
+        'sidebar-convo-title-2': { title: 'Conversation #2', content: ['Hi again.', 'Let’s dive into the pricing strategy.', 'I’ve pulled up the Q4 data.'] },
+        'sidebar-convo-title-3': { title: 'Conversation #3', content: ['Welcome back.', 'Need help with a new simulation?'] },
+        'sidebar-convo-title-4': { title: 'Conversation #4', content: ['Reviewing the onboarding process.', 'Ready to update proposal?'] }
+      },
+      projects: {
+        'project-1': 'Projects View Placeholder for First Project Name',
+        'project-2': 'Projects View Placeholder for Q4 Pricing Strategy',
+        'project-3': 'Projects View Placeholder for Third Project Name'
+      },
+      stakeholders: {
+        'stakeholder-1': 'Stakeholders View Placeholder for Carlos Moreno',
+        'stakeholder-2': 'Stakeholders View Placeholder for Priya Deshmukh',
+        'stakeholder-3': 'Stakeholders View Placeholder for Morgan Li'
+      },
+      success: {
+        'success-1': 'Success View Placeholder for ROI Impact Tracker',
+        'success-2': 'Success View Placeholder for Validated Hypotheses',
+        'success-3': 'Success View Placeholder for Proposal Outcome Reports'
+      }
+    };
+
+    let activeEntityId = '';
+    let activeViewId = '';
+
+    function toggleSection(id) {
+      const section = document.getElementById(id);
+      section.classList.toggle('hidden');
+    }
+
+    function updateMainView(viewId, entityId = '') {
+  const views = document.querySelectorAll('.main-view');
+  views.forEach(view => view.classList.add('hidden'));
+  const panels = document.querySelectorAll('.right-panel');
+  panels.forEach(panel => panel.classList.add('hidden'));
+
+  const selectedView = document.getElementById(viewId);
+  const rightPanelId = viewId + '-panel';
+  const rightPanel = document.getElementById(rightPanelId);
+  if (selectedView) selectedView.classList.remove('hidden');
+  if (rightPanel) rightPanel.classList.remove('hidden');
+
+  const allSidebarItems = document.querySelectorAll('aside ul li');
+  allSidebarItems.forEach(item => item.classList.remove('font-bold', 'bg-slate-700', 'px-2', 'py-1', 'rounded'));
+
+
+      if (entityId) {
+    activeEntityId = entityId;
+    activeViewId = viewId;
+    const activeItem = document.getElementById(entityId);
+    if (activeItem) activeItem.classList.add('font-bold', 'bg-slate-700', 'px-2', 'py-1', 'rounded');
+
+        if (viewId === 'conversationView') {
+          const convo = data.conversations[entityId];
+          if (convo) {
+            const titleInput = document.querySelector('input[name="conversation-title"]');
+            const chatContainer = document.querySelector('#conversationView section');
+            if (titleInput) titleInput.value = convo.title;
+            if (chatContainer) {
+              chatContainer.innerHTML = convo.content.map((msg, i) => `<div class="${i % 2 === 0 ? 'bg-white shadow' : 'bg-slate-200 self-end'} rounded-lg p-4 max-w-xl">${msg}</div>`).join('');
+            }
+          }
+        } else if (viewId === 'projectsView') {
+          document.getElementById('projectsView').innerText = data.projects[entityId];
+        } else if (viewId === 'stakeholdersView') {
+          document.getElementById('stakeholdersView').innerText = data.stakeholders[entityId];
+        } else if (viewId === 'successView') {
+          document.getElementById('successView').innerText = data.success[entityId];
+        }
+      }
+    }
+
+    function syncSidebarTitle(newTitle) {
+      if (activeEntityId && activeViewId === 'conversationView') {
+        const sidebarItem = document.getElementById(activeEntityId);
+        if (sidebarItem) sidebarItem.textContent = newTitle;
+        data.conversations[activeEntityId].title = newTitle;
+      }
+    }
+
+    
+  </script>
+</head>
+<body class="flex h-screen font-sans">
+  <!-- Sidebar -->
+<aside class="w-60 bg-slate-900 text-white p-4 flex flex-col overflow-y-auto">
+  <img src="logo.png" alt="Logo" width="70%" class="">
+  <br>
+  <div>
+    <h3 onclick="toggleSection('convoList')" class="text-sm font-semibold uppercase mb-2 cursor-pointer flex items-center gap-2">
+      <img src="conversations.svg" alt="Conversations Icon" class="h-4 w-4 inline-block" />
+      Conversations
+    </h3>
+    <ul id="convoList" class="space-y-1 text-sm">
+      <li id="sidebar-convo-title-1" onclick="updateMainView('conversationView', 'sidebar-convo-title-1')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap font-bold bg-slate-700 px-2 py-1 rounded">Discussion of important details</li>
+      <li id="sidebar-convo-title-2" onclick="updateMainView('conversationView', 'sidebar-convo-title-2')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #2</li>
+      <li id="sidebar-convo-title-3" onclick="updateMainView('conversationView', 'sidebar-convo-title-3')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #3</li>
+      <li id="sidebar-convo-title-4" onclick="updateMainView('conversationView', 'sidebar-convo-title-4')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #4</li>
+    </ul>
+  </div>
+
+  <div class="mt-6">
+    <h3 onclick="toggleSection('projectList')" class="text-sm font-semibold uppercase mb-2 cursor-pointer flex items-center gap-2">
+      <img src="projects.svg" alt="Projects Icon" class="h-4 w-4 inline-block" />
+      Projects
+    </h3>
+    <ul id="projectList" class="space-y-1 text-sm">
+      <li id="project-1" onclick="updateMainView('projectsView', 'project-1')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">First Project Name</li>
+      <li id="project-2" onclick="updateMainView('projectsView', 'project-2')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Q4 Pricing Strategy</li>
+      <li id="project-3" onclick="updateMainView('projectsView', 'project-3')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Third Project Name</li>
+    </ul>
+  </div>
+
+  <div class="mt-6">
+    <h3 onclick="toggleSection('stakeholderList')" class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+      <img src="stakeholders.svg" alt="Stakeholders Icon" class="h-4 w-4 inline-block" />
+      Stakeholders
+    </h3>
+    <ul id="stakeholderList" class="space-y-1 text-sm hidden">
+      <li id="stakeholder-1" onclick="updateMainView('stakeholdersView', 'stakeholder-1')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Carlos Moreno – Head of Sales</li>
+      <li id="stakeholder-2" onclick="updateMainView('stakeholdersView', 'stakeholder-2')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Priya Deshmukh – Head of Engineering</li>
+      <li id="stakeholder-3" onclick="updateMainView('stakeholdersView', 'stakeholder-3')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Morgan Li – VP of Product</li>
+    </ul>
+  </div>
+
+  <div class="mt-6">
+    <h3 onclick="toggleSection('successList')" class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+      <img src="success.svg" alt="Success Icon" class="h-4 w-4 inline-block" />
+      Success
+    </h3>
+    <ul id="successList" class="space-y-1 text-sm hidden">
+      <li id="success-1" onclick="updateMainView('successView', 'success-1')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">ROI Impact Tracker</li>
+      <li id="success-2" onclick="updateMainView('successView', 'success-2')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Validated Hypotheses</li>
+      <li id="success-3" onclick="updateMainView('successView', 'success-3')" class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Proposal Outcome Reports</li>
+    </ul>
+  </div>
+
+  <div class="mt-6">
+    <h3 onclick="updateMainView('settingsView')" class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+      <img src="settings.svg" alt="Settings Icon" class="h-4 w-4 inline-block" />
+      Settings
+    </h3>
+  </div>
+</aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex">
+    <!-- Center Views -->
+    <div class="flex-1 flex flex-col">
+      <div id="conversationView" class="main-view flex-1 flex flex-col">
+        <header class="p-4 border-b">
+          <input id="conversation-title-input" name="conversation-title" type="text" value="Discussion of important details" class="w-full text-lg font-semibold bg-transparent border-b border-slate-400 pb-1" oninput="syncSidebarTitle(this.value)" />
+        </header>
+        <section class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
+          <div class="bg-white shadow rounded-lg p-4 max-w-xl">Hello! How can I help you get started today?</div>
+          <div class="bg-slate-200 rounded-lg p-4 max-w-xl place-self-end">I'd like to review an existing proposal.</div>
+          <div class="bg-white shadow rounded-lg p-4 max-w-xl">Great. I'll pull up the last saved proposal draft. Would you like to make changes or compare options?</div>
+        </section>
+        <footer class="p-4 border-t flex gap-4">
+          <input type="text" placeholder="Type your message…" class="flex-1 p-3 border rounded text-sm">
+          <button class="bg-slate-900 text-white px-4 py-2 rounded text-sm">Submit</button>
+        </footer>
+      </div>
+
+      <div id="projectsView" class="main-view hidden p-6">
+  <h2 class="text-xl font-semibold mb-4">Project Overview</h2>
+  <div class="mb-4 text-sm text-gray-700">
+    <p><strong>Owner:</strong> Jane Doe</p>
+    <p><strong>Timeline:</strong> Q3 2025</p>
+    <p><strong>Status:</strong> In Progress</p>
+    <p><strong>Last Updated:</strong> July 18, 2025</p>
+  </div>
+  <p class="mb-2">This project includes:</p>
+  <ul class="list-disc list-inside text-sm text-gray-700">
+    <li>Multiple conversation threads</li>
+    <li>Associated proposals and simulations</li>
+    <li>Key stakeholder involvement</li>
+    <li>Linked documents</li>
+  </ul>
+</div>
+
+<div id="stakeholdersView" class="main-view hidden p-6">
+  <h2 class="text-xl font-semibold mb-4">Stakeholder Details</h2>
+  <p class="mb-2">Selected stakeholder:</p>
+  <div class="bg-white rounded shadow p-4">
+    <p><strong>Name:</strong> <span id="stakeholder-name">—</span></p>
+    <p><strong>Role:</strong> <span id="stakeholder-role">—</span></p>
+    <p><strong>Behavioral Traits:</strong> <span id="stakeholder-behaviors">—</span></p>
+    <p><strong>Associated Conversations:</strong> <span id="stakeholder-conversations">—</span></p>
+  </div>
+</div>
+
+<div id="successView" class="main-view hidden p-6">
+  <h2 class="text-xl font-semibold mb-4">Success Metrics</h2>
+  <p class="mb-2">This panel displays outcome tracking and key results:</p>
+  <div class="space-y-4">
+    <div>
+      <p class="text-sm font-medium text-gray-700 mb-1">Proposal Success Rate</p>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="bg-green-500 h-4 rounded-full" style="width: 78%;"></div>
+      </div>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-gray-700 mb-1">Validated Hypotheses</p>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="bg-blue-500 h-4 rounded-full" style="width: 60%;"></div>
+      </div>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-gray-700 mb-1">ROI Performance</p>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="bg-purple-500 h-4 rounded-full" style="width: 85%;"></div>
+      </div>
+    </div>
+    <div>
+      <p class="text-sm font-medium text-gray-700 mb-1">Bias Awareness Flags Resolved</p>
+      <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="bg-yellow-500 h-4 rounded-full" style="width: 92%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsView" class="main-view hidden p-6">
+  <h2 class="text-xl font-semibold mb-4">User Settings</h2>
+  <div>
+    <ul class="flex space-x-4 border-b mb-4 text-sm">
+      <li><button onclick="showTab('profileTab')" class="py-2 px-4 font-semibold text-slate-700">Profile</button></li>
+      <li><button onclick="showTab('filesTab')" class="py-2 px-4 font-semibold text-slate-700">Files</button></li>
+      <li><button onclick="showTab('integrationsTab')" class="py-2 px-4 font-semibold text-slate-700">Integrations</button></li>
+    </ul>
+    <div id="profileTab" class="settings-tab">
+      <h3 class="font-semibold text-sm mb-2 uppercase">Profile</h3>
+      <input type="text" placeholder="Your Name" class="border px-3 py-1 rounded w-full mb-2">
+      <input type="text" placeholder="Your Role" class="border px-3 py-1 rounded w-full">
+    </div>
+    <div id="filesTab" class="settings-tab hidden">
+      <h3 class="font-semibold text-sm mb-2 uppercase">Global Files</h3>
+      <ul class="list-disc list-inside text-sm">
+        <li>2025-Strategic-Priorities.pdf</li>
+        <li>Customer-Personas-Q3.pptx</li>
+        <li>Board-Pitch-Deck-May.key</li>
+      </ul>
+    </div>
+    <div id="integrationsTab" class="settings-tab hidden">
+      <h3 class="font-semibold text-sm mb-2 uppercase">Integrations</h3>
+      <p class="text-sm text-gray-700">Slack, Google Drive, Notion</p>
+    </div>
+  </div>
+</div>
+
+    </div>
+
+    <!-- Right Panels -->
+    <aside id="conversationView-panel" class="right-panel w-80 bg-slate-200 p-4 flex flex-col space-y-6 text-sm text-slate-800 overflow-y-auto">
+  <div>
+    <h4 class="uppercase font-semibold text-xs flex justify-between items-center border-b pb-1 mb-2">
+      Participants
+      <span class="text-lg leading-none font-normal">+</span>
+    </h4>
+    <ul class="space-y-1 mb-2">
+      <li>You</li>
+      <li>Executive Coach</li>
+    </ul>
+  </div>
+
+  <div>
+    <h4 class="uppercase font-semibold text-xs border-b pb-1 mb-2">Project</h4>
+    <p class="italic text-xs text-slate-600 mb-2">This Conversation is not yet associated with any project.</p>
+    <label class="block">
+      <select class="w-full border border-slate-400 rounded px-2 py-1 text-sm bg-white">
+        <option>Select a Project</option>
+        <option>Q4 Pricing Strategy</option>
+        <option>Onboarding Redesign</option>
+      </select>
+    </label>
+  </div>
+
+  <div>
+    <h4 class="uppercase font-semibold text-xs border-b pb-1 mb-2">Linked Items</h4>
+    <p>Proposal Draft: <span class="text-blue-600 hover:underline">View Draft</span></p>
+    <p>Attached Files: 2</p>
+    <p>Tags: Roadmap, Enterprise</p>
+  </div>
+
+  <div>
+    <h4 class="uppercase font-semibold text-xs border-b pb-1 mb-2">Insights</h4>
+    <p><span class="font-medium">Key Decisions:</span> Reprioritize dashboard feature</p>
+    <p><span class="font-medium">Next Steps:</span> Share draft with stakeholders</p>
+    <p><span class="font-medium">Bias Flags:</span> None</p>
+  </div>
+</aside>
+    <aside id="projectsView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">Project Info Panel</aside>
+    <aside id="stakeholdersView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">Stakeholder Info Panel</aside>
+    <aside id="successView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">Success Metrics Panel</aside>
+    <aside id="settingsView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">Settings Panel</aside>
+  </main>
+</body>
+</html>
