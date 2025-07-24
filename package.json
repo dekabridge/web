@@ -1,0 +1,11 @@
+{
+  "name": "react-ghpages-static",
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "gh-pages -d ."
+  },
+  "homepage": "https://dekabridge.github.io/web/vibe-fe",
+  "devDependencies": {
+    "gh-pages": "^5.0.0"
+  }
+}
