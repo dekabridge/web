@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DekaBridge Interface</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const data = {
+      conversations: {
+        'sidebar-convo-title-1': {
+          title: 'Discussion of important details',
+          content: [
+            'Hello! How can I help you get started today?',
+            "I'd like to review an existing proposal.",
+            "Great. I'll pull up the last saved proposal draft. Would you like to make changes or compare options?"
+          ],
+          proposal: '',
+          supportingFiles: ['Customer_Interview_Notes.pdf', 'Revenue_Chart_Q4.png']
+        },
+        'sidebar-convo-title-2': {
+          title: 'Conversation #2',
+          content: ['Hi again.', 'Let’s dive into the pricing strategy.', 'I’ve pulled up the Q4 data.'],
+          proposal: '',
+          supportingFiles: ['Customer_Interview_Notes.pdf', 'Revenue_Chart_Q4.png']
+        },
+        'sidebar-convo-title-3': {
+          title: 'Conversation #3',
+          content: ['Welcome back.', 'Need help with a new simulation?'],
+          proposal: '',
+          supportingFiles: ['Customer_Interview_Notes.pdf', 'Revenue_Chart_Q4.png']
+        },
+        'sidebar-convo-title-4': {
+          title: 'Conversation #4',
+          content: ['Reviewing the onboarding process.', 'Ready to update proposal?'],
+          proposal: '',
+          supportingFiles: ['Customer_Interview_Notes.pdf', 'Revenue_Chart_Q4.png']
+        }
+      },
+      projects: {
+        'project-1': {
+          name: 'First Project Name',
+          owner: 'Alex Rivera',
+          timeline: 'Q2 2025',
+          status: 'In Planning',
+          updated: 'June 12, 2025',
+          highlights: ['Exploration phase', 'Early stakeholder interviews', 'No committed proposals yet'],
+          tags: ['Roadmap', 'Strategy', 'AI']
+        },
+        'project-2': {
+          name: 'Q4 Pricing Strategy',
+          owner: 'Jane Doe',
+          timeline: 'Q4 2025',
+          status: 'Active',
+          updated: 'July 18, 2025',
+          highlights: ['Multiple proposal iterations', 'AI agent trials completed', 'Validated ROI estimate'],
+          tags: ['Roadmap', 'Strategy', 'AI']
+        },
+        'project-3': {
+          name: 'Third Project Name',
+          owner: 'Sam Wu',
+          timeline: 'Q1 2026',
+          status: 'Backlog',
+          updated: 'May 2, 2025',
+          highlights: ['Prioritized for next roadmap', 'Awaiting team assignments'],
+          tags: ['Roadmap', 'Strategy', 'AI']
+        }
+      },
+      stakeholders: {
+        'stakeholder-1': {
+          name: 'Carlos Moreno',
+          role: 'Head of Sales',
+          behaviors: 'Aggressive growth, short-term wins',
+          conversations: 4
+        },
+        'stakeholder-2': {
+          name: 'Priya Deshmukh',
+          role: 'Head of Engineering',
+          behaviors: 'Scalability-focused, methodical',
+          conversations: 6
+        },
+        'stakeholder-3': {
+          name: 'Morgan Li',
+          role: 'VP of Product',
+          behaviors: 'Customer-centric, vision-driven',
+          conversations: 5
+        }
+      },
+      success: {
+        'success-1': 78,
+        'success-2': 60,
+        'success-3': 85,
+        'bias': 92
+      }
+    };
+
+    let activeEntityId = '';
+    let activeViewId = '';
+    let templateCounter = 5;
+
+    function toggleSection(id) {
+      const section = document.getElementById(id);
+      section.classList.toggle('hidden');
+    }
+
+    function updateMainView(viewId, entityId = '') {
+      const views = document.querySelectorAll('.main-view');
+      views.forEach(view => view.classList.add('hidden'));
+      const panels = document.querySelectorAll('.right-panel');
+      panels.forEach(panel => panel.classList.add('hidden'));
+
+      const selectedView = document.getElementById(viewId);
+      if (selectedView) selectedView.classList.remove('hidden');
+
+      const allSidebarItems = document.querySelectorAll('aside ul li');
+      allSidebarItems.forEach(item => item.classList.remove('font-bold', 'bg-slate-700', 'px-2', 'py-1', 'rounded'));
+
+      if (entityId) {
+        activeEntityId = entityId;
+        activeViewId = viewId;
+
+        const activeItem = document.getElementById(entityId);
+        if (activeItem) activeItem.classList.add('font-bold', 'bg-slate-700', 'px-2', 'py-1', 'rounded');
+
+        const rightPanelId = viewId + '-panel';
+        const rightPanel = document.getElementById(rightPanelId);
+        if (rightPanel) rightPanel.classList.remove('hidden');
+
+        if (viewId === 'conversationView') {
+          const convo = data.conversations[entityId];
+          const filesList = document.getElementById('supporting-files-list');
+          if (filesList) {
+            const files = convo.supportingFiles || [];
+            filesList.innerHTML = files.length
+              ? files.map(file => `<li>${file}</li>`).join('')
+              : '<li class="italic text-slate-500">No files linked yet</li>';
+          }
+          
+          if (convo) {
+            const titleInput = document.querySelector('input[name="conversation-title"]');
+            if (titleInput) titleInput.value = convo.title;
+            const messagesDiv = document.getElementById('conversation-messages');
+            if (messagesDiv) {
+              messagesDiv.innerHTML = convo.content.map((msg, i) => `
+    <div class="${i % 2 === 0 ? 'bg-white shadow self-start' : 'bg-slate-200 place-self-end'} 
+      rounded-lg p-4 max-w-xl">
+      ${msg}
+    </div>`).join('');
+            }
+
+            // Update proposal preview if it exists
+            const proposalPreview = document.getElementById('proposal-preview');
+            if (proposalPreview) {
+              const proposalText = convo.proposal || '';
+              proposalPreview.textContent = proposalText
+                ? truncateText(proposalText, 60)
+                : 'No proposal yet. Click to add one.';
+            }
+
+
+            // ✅ Proposal Preview Logic
+            const preview = document.getElementById('proposal-preview');
+            if (preview) {
+              const proposal = convo.proposal || '';
+              preview.textContent = proposal ? truncateText(proposal, 60) : 'Proposal needed… Click to add one.';
+            }
+          }
+        }
+
+        else if (viewId === 'projectsView') {
+          const project = data.projects[entityId];
+          if (project) {
+            document.getElementById('project-name').textContent = project.name;
+            document.getElementById('project-owner').textContent = project.owner;
+            document.getElementById('project-status').textContent = project.status;
+            document.getElementById('project-timeline').textContent = project.timeline;
+            document.getElementById('project-updated').textContent = project.updated;
+            document.getElementById('project-tags').textContent = project.tags.join(', ');
+          }
+        }
+      }
+    }
+
+
+
+
+    function createNewConversationFromTemplate(templateType) {
+      const id = `sidebar-convo-title-${templateCounter++}`;
+      const titles = {
+        proposal: 'New Proposal Conversation',
+        stakeholder: 'New Stakeholder Simulation',
+        comparison: 'New Option Comparison',
+        bias: 'New Bias Review'
+      };
+      const starters = {
+        proposal: ['Let’s begin drafting your proposal.', 'What’s the main idea we’re presenting?'],
+        stakeholder: ['Which stakeholder are we simulating today?', 'Let’s explore reactions and risks.'],
+        comparison: ['What options are we comparing?', 'We’ll build a pros/cons chart.'],
+        bias: ['Let’s scan for biases.', 'Where do you feel uncertainty in this decision?']
+      };
+
+      data.conversations[id] = {
+        title: titles[templateType],
+        content: starters[templateType]
+      };
+
+      const ul = document.getElementById('convoList');
+      const li = document.createElement('li');
+      li.id = id;
+      li.textContent = titles[templateType];
+      li.className = 'cursor-pointer truncate overflow-hidden whitespace-nowrap font-bold bg-slate-700 px-2 py-1 rounded';
+      li.onclick = () => updateMainView('conversationView', id);
+      ul.prepend(li);
+
+      updateMainView('conversationView', id);
+    }
+
+    function syncSidebarTitle(newTitle) {
+      if (activeEntityId && activeViewId === 'conversationView') {
+        const sidebarItem = document.getElementById(activeEntityId);
+        if (sidebarItem) sidebarItem.textContent = newTitle;
+        data.conversations[activeEntityId].title = newTitle;
+      }
+    }
+
+    function showWelcomeView() {
+      console.log("here!!!!!!!!")
+      updateMainView('welcomeView');
+    }
+
+    function toggleProposalSection() {
+      const editor = document.getElementById('proposal-editor');
+      editor.classList.toggle('hidden');
+    }
+
+    function saveProposalDraft() {
+      if (!activeEntityId) return;
+      const textarea = document.getElementById('proposal-textarea');
+      const preview = document.getElementById('proposal-preview');
+      const text = textarea.value.trim();
+      data.conversations[activeEntityId].proposal = text;
+      preview.textContent = text ? truncateText(text, 60) : 'No proposal yet. Click to add one.';
+      toggleProposalSection();
+    }
+
+    function truncateText(text, maxLength) {
+      return text.length > maxLength ? text.slice(0, maxLength) + '…' : text;
+    }
+
+    function addSupportingFile() {
+      alert("Upload functionality coming soon!");
+    }
+
+    window.onload = () => showWelcomeView();
+  </script>
+</head>
+
+<body class="flex h-screen font-sans">
+  <!-- Sidebar -->
+  <aside class="w-60 bg-slate-900 text-white p-4 flex flex-col overflow-y-auto">
+    <img src="logo.png" alt="Logo" width="70%" class="cursor-pointer" onclick="showWelcomeView()" />
+    <br>
+    <div>
+      <h3 onclick="toggleSection('convoList')"
+        class="text-sm font-semibold uppercase mb-2 cursor-pointer flex items-center gap-2">
+        <img src="conversations.svg" alt="Conversations Icon" class="h-4 w-4 inline-block" />
+        Conversations
+      </h3>
+      <ul id="convoList" class="space-y-1 text-sm">
+        <li id="sidebar-convo-title-1" onclick="updateMainView('conversationView', 'sidebar-convo-title-1')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap font-bold bg-slate-700 px-2 py-1 rounded">
+          Discussion of important details</li>
+        <li id="sidebar-convo-title-2" onclick="updateMainView('conversationView', 'sidebar-convo-title-2')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #2</li>
+        <li id="sidebar-convo-title-3" onclick="updateMainView('conversationView', 'sidebar-convo-title-3')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #3</li>
+        <li id="sidebar-convo-title-4" onclick="updateMainView('conversationView', 'sidebar-convo-title-4')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Conversations #4</li>
+      </ul>
+    </div>
+
+    <div class="mt-6">
+      <h3 onclick="toggleSection('projectList')"
+        class="text-sm font-semibold uppercase mb-2 cursor-pointer flex items-center gap-2">
+        <img src="projects.svg" alt="Projects Icon" class="h-4 w-4 inline-block" />
+        Projects
+      </h3>
+      <ul id="projectList" class="space-y-1 text-sm">
+        <li id="project-1" onclick="updateMainView('projectsView', 'project-1')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">First Project Name</li>
+        <li id="project-2" onclick="updateMainView('projectsView', 'project-2')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Q4 Pricing Strategy</li>
+        <li id="project-3" onclick="updateMainView('projectsView', 'project-3')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Third Project Name</li>
+      </ul>
+    </div>
+
+    <div class="mt-6">
+      <h3 onclick="toggleSection('stakeholderList')"
+        class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+        <img src="stakeholders.svg" alt="Stakeholders Icon" class="h-4 w-4 inline-block" />
+        Stakeholders
+      </h3>
+      <ul id="stakeholderList" class="space-y-1 text-sm hidden">
+        <li id="stakeholder-1" onclick="updateMainView('stakeholdersView', 'stakeholder-1')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Carlos Moreno – Head of Sales</li>
+        <li id="stakeholder-2" onclick="updateMainView('stakeholdersView', 'stakeholder-2')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Priya Deshmukh – Head of Engineering</li>
+        <li id="stakeholder-3" onclick="updateMainView('stakeholdersView', 'stakeholder-3')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Morgan Li – VP of Product</li>
+      </ul>
+    </div>
+
+    <div class="mt-6">
+      <h3 onclick="toggleSection('successList')"
+        class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+        <img src="success.svg" alt="Success Icon" class="h-4 w-4 inline-block" />
+        Success
+      </h3>
+      <ul id="successList" class="space-y-1 text-sm hidden">
+        <li id="success-1" onclick="updateMainView('successView', 'success-1')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">ROI Impact Tracker</li>
+        <li id="success-2" onclick="updateMainView('successView', 'success-2')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Validated Hypotheses</li>
+        <li id="success-3" onclick="updateMainView('successView', 'success-3')"
+          class="cursor-pointer truncate overflow-hidden whitespace-nowrap">Proposal Outcome Reports</li>
+      </ul>
+    </div>
+
+    <div class="mt-6">
+      <h3 onclick="updateMainView('settingsView')"
+        class="uppercase font-semibold text-sm cursor-pointer flex items-center gap-2">
+        <img src="settings.svg" alt="Settings Icon" class="h-4 w-4 inline-block" />
+        Settings
+      </h3>
+    </div>
+
+
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 flex">
+    <!-- Center Views -->
+    <div class="flex-1 flex flex-col">
+      <!-- WELCOME VIEW -->
+      <div id="welcomeView" class="main-view hidden p-10 space-y-8 text-center">
+        <h1 class="text-2xl font-bold text-slate-800 uppercase tracking-wide">Welcome to DekaBridge</h1>
+        <p class="text-slate-600 max-w-xl mx-auto text-sm">
+          Start a new decision-making conversation using one of our helpful templates.
+        </p>
+        <div class="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <button onclick="createNewConversationFromTemplate('proposal')"
+            class="bg-white border border-slate-300 shadow hover:bg-slate-100 p-6 rounded text-sm">
+            <h2 class="font-semibold mb-2">📝 Proposal Draft</h2>
+            <p class="text-slate-600">Outline your main idea and let the system help shape the message.</p>
+          </button>
+          <button onclick="createNewConversationFromTemplate('stakeholder')"
+            class="bg-white border border-slate-300 shadow hover:bg-slate-100 p-6 rounded text-sm">
+            <h2 class="font-semibold mb-2">👥 Stakeholder Simulation</h2>
+            <p class="text-slate-600">Test reactions, friction, or alignment by simulating stakeholder feedback.</p>
+          </button>
+          <button onclick="createNewConversationFromTemplate('comparison')"
+            class="bg-white border border-slate-300 shadow hover:bg-slate-100 p-6 rounded text-sm">
+            <h2 class="font-semibold mb-2">📊 Option Comparison</h2>
+            <p class="text-slate-600">Lay out multiple approaches with pros and cons to compare outcomes.</p>
+          </button>
+          <button onclick="createNewConversationFromTemplate('bias')"
+            class="bg-white border border-slate-300 shadow hover:bg-slate-100 p-6 rounded text-sm">
+            <h2 class="font-semibold mb-2">⚠️ Bias Review</h2>
+            <p class="text-slate-600">Examine decisions for potential blind spots, risks, or biases.</p>
+          </button>
+        </div>
+      </div>
+
+      <div id="conversationView" class="main-view flex-1 flex flex-col">
+        <header class="p-4 border-b">
+          <input id="conversation-title-input" name="conversation-title" type="text"
+            value="Discussion of important details"
+            class="w-full text-lg font-semibold bg-transparent border-b border-slate-400 pb-1"
+            oninput="syncSidebarTitle(this.value)" />
+        </header>
+        <!-- Scrollable Chat Area -->
+        <section class="flex-1 overflow-y-auto p-6 bg-slate-50">
+          <div id="conversation-messages" class="space-y-4"></div>
+        </section>
+
+        <!-- Collapsible Proposal Section (Now Anchored at Bottom) -->
+        <div class="px-6 pt-2 bg-slate-100 border-t border-slate-300">
+          <div onclick="toggleProposalSection()" class="cursor-pointer bg-white p-3 border border-slate-300 rounded">
+            <strong class="text-slate-700">📝 Proposal Draft:</strong>
+            <span id="proposal-preview" class="text-slate-600 text-sm ml-2">No proposal yet. Click to add one.</span>
+          </div>
+          <div id="proposal-editor" class="mt-2 hidden">
+            <textarea id="proposal-textarea" class="w-full border p-3 rounded text-sm h-32 resize-y mt-2"
+              placeholder="Write your proposal here..."></textarea>
+            <button onclick="saveProposalDraft()" class="mt-2 bg-slate-800 text-white px-4 py-1 rounded text-sm">Save
+              Proposal</button>
+          </div>
+        </div>
+
+
+
+        <footer class="p-4 border-t flex gap-4">
+          <input type="text" placeholder="Type your message…" class="flex-1 p-3 border rounded text-sm">
+          <button class="bg-slate-900 text-white px-4 py-2 rounded text-sm">Submit</button>
+        </footer>
+      </div>
+
+
+      <div id="projectsView" class="main-view hidden p-6 space-y-6">
+        <h2 class="text-xl font-semibold">Project Overview</h2>
+
+        <!-- Project Summary -->
+        <div class="bg-white border rounded shadow p-4 text-sm space-y-2">
+          <p><strong>Name:</strong> <span id="project-name">Q4 Pricing Strategy</span></p>
+          <p><strong>Owner:</strong> <span id="project-owner">Jane Doe</span></p>
+          <p><strong>Status:</strong> <span id="project-status">Active</span></p>
+          <p><strong>Timeline:</strong> <span id="project-timeline">Q4 2025</span></p>
+          <p><strong>Last Updated:</strong> <span id="project-updated">July 18, 2025</span></p>
+          <p><strong>Tags:</strong> <span id="project-tags" class="italic text-slate-600">Roadmap, Strategy, AI</span>
+          </p>
+        </div>
+
+        <!-- Scope Section -->
+        <div class="bg-white border rounded shadow p-4 text-sm">
+          <h3 class="uppercase font-semibold text-slate-700 text-xs mb-2 tracking-wide">📘 Scope</h3>
+          <p>This project focuses on aligning pricing recommendations with Q4 business goals across product and
+            marketing teams. Includes competitive analysis, customer interviews, and proposal simulations.</p>
+        </div>
+
+        <!-- Associated Items -->
+        <div class="bg-white border rounded shadow p-4 text-sm">
+          <h3 class="uppercase font-semibold text-slate-700 text-xs mb-2 tracking-wide">📎 Associated Items</h3>
+          <ul class="list-disc list-inside text-slate-800 space-y-1">
+            <li>3 Conversations</li>
+            <li>2 Proposals</li>
+            <li>4 Stakeholders involved</li>
+            <li>6 Linked Files</li>
+          </ul>
+        </div>
+      </div>
+
+
+      <div id="stakeholdersView" class="main-view hidden p-6">
+        <h2 class="text-xl font-semibold mb-4">Stakeholder Overview</h2>
+        <div class="space-y-3 text-sm text-gray-800">
+          <p><strong>Name:</strong> <span id="stakeholder-name"></span></p>
+          <p><strong>Role:</strong> <span id="stakeholder-role"></span></p>
+          <p><strong>Behavioral Traits:</strong> <span id="stakeholder-behaviors"></span></p>
+          <p><strong>Associated Conversations:</strong> <span id="stakeholder-conversations"></span></p>
+        </div>
+      </div>
+
+      <div id="successView" class="main-view hidden p-6 space-y-6">
+        <h2 class="text-xl font-semibold mb-4">Success Metrics</h2>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm font-medium text-gray-700 mb-1">Proposal Success Rate</p>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+              <div id="success-proposal" class="bg-green-500 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700 mb-1">Validated Hypotheses</p>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+              <div id="success-hypotheses" class="bg-blue-500 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700 mb-1">ROI Performance</p>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+              <div id="success-roi" class="bg-purple-500 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-700 mb-1">Bias Flags Resolved</p>
+            <div class="w-full bg-gray-200 rounded-full h-4">
+              <div id="success-bias" class="bg-yellow-500 h-4 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div id="settingsView" class="main-view hidden p-6">
+        <h2 class="text-xl font-semibold mb-4">User Settings</h2>
+        <ul class="flex space-x-4 border-b mb-4 text-sm">
+          <li>
+            <button onclick="showTab('profileTab')"
+              class="py-2 px-4 font-semibold text-slate-700 hover:underline">Profile</button>
+          </li>
+          <li>
+            <button onclick="showTab('filesTab')"
+              class="py-2 px-4 font-semibold text-slate-700 hover:underline">Files</button>
+          </li>
+          <li>
+            <button onclick="showTab('integrationsTab')"
+              class="py-2 px-4 font-semibold text-slate-700 hover:underline">Integrations</button>
+          </li>
+        </ul>
+
+        <div id="profileTab" class="settings-tab">
+          <h3 class="text-sm font-semibold uppercase mb-2">Profile</h3>
+          <input type="text" placeholder="Your Name" class="border px-3 py-1 rounded w-full mb-2">
+          <input type="text" placeholder="Your Role" class="border px-3 py-1 rounded w-full">
+        </div>
+
+        <div id="filesTab" class="settings-tab hidden">
+          <h3 class="text-sm font-semibold uppercase mb-2">Global Files</h3>
+          <ul class="list-disc list-inside text-sm">
+            <li>2025-Strategic-Priorities.pdf</li>
+            <li>Customer-Personas-Q3.pptx</li>
+            <li>Board-Pitch-Deck-May.key</li>
+          </ul>
+        </div>
+
+        <div id="integrationsTab" class="settings-tab hidden">
+          <h3 class="text-sm font-semibold uppercase mb-2">Integrations</h3>
+          <p class="text-sm text-gray-700">Slack, Google Drive, Notion</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Panels -->
+    <aside id="conversationView-panel"
+      class="right-panel w-80 bg-slate-200 p-4 flex flex-col space-y-6 text-sm text-slate-800 overflow-y-auto">
+      <div>
+        <h4 class="uppercase font-bold text-s flex justify-between items-center border-b pb-1 mb-2">
+          Participants
+          <span class="text-lg font-bold leading-none font-normal">+</span>
+        </h4>
+        <ul class="space-y-1 mb-2">
+          <li>You</li>
+          <li>Executive Coach</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="uppercase font-bold text-s border-b pb-1 mb-2">Project</h4>
+        <p class="italic text-xs text-slate-600 mb-2">This Conversation is not yet associated with any project.</p>
+        <label class="block">
+          <select class="w-full border border-slate-400 rounded px-2 py-1 text-sm bg-white">
+            <option>Select a Project</option>
+            <option>Q4 Pricing Strategy</option>
+            <option>Onboarding Redesign</option>
+          </select>
+        </label>
+      </div>
+
+      <div>
+        <h4 class="uppercase font-bold text-s border-b pb-1 mb-2">Supporting Data</h4>
+        <ul id="supporting-files-list" class="space-y-1 text-sm text-blue-700 underline cursor-pointer"></ul>
+        <button class="mt-2 text-xs text-blue-600 hover:underline" onclick="addSupportingFile()">+ Add File</button>
+      </div>
+
+
+      <div>
+        <h4 class="uppercase font-bold text-s border-b pb-1 mb-2">Insights</h4>
+        <p><span class="font-medium">Key Decisions:</span> Reprioritize dashboard feature</p>
+        <p><span class="font-medium">Next Steps:</span> Share draft with stakeholders</p>
+        <p><span class="font-medium">Bias Flags:</span> None</p>
+      </div>
+    </aside>
+    <aside id="projectsView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">
+    </aside>
+
+
+    <aside id="stakeholdersView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">
+      <h4 class="uppercase font-semibold mb-3 text-gray-700">Influence & Priorities</h4>
+      <p id="stakeholder-influence">[Autopopulated from selection]</p>
+
+      <h4 class="uppercase font-semibold mt-6 mb-3 text-gray-700">Recent Activity</h4>
+      <ul id="stakeholder-activity" class="list-disc list-inside text-gray-700">
+        <!-- JS will populate these -->
+      </ul>
+
+      <h4 class="uppercase font-semibold mt-6 mb-3 text-gray-700">Notes</h4>
+      <textarea class="w-full border rounded p-2 text-sm" rows="4"
+        placeholder="Add notes about this stakeholder..."></textarea>
+    </aside>
+
+    <aside id="successView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">
+      <h4 class="uppercase font-semibold mb-4 text-xs text-slate-700 tracking-wide">📊 Summary</h4>
+      <ul class="space-y-2">
+        <li><strong>Proposal Conversion Rate:</strong> Tracks how often proposals result in action</li>
+        <li><strong>Hypothesis Validation:</strong> Measures experiment learning rate</li>
+        <li><strong>ROI Trend:</strong> Aggregates fiscal impact across pilots</li>
+        <li><strong>Bias Mitigation:</strong> Flags reduced via decision reviews</li>
+      </ul>
+      <div class="mt-6">
+        <p class="text-xs text-slate-500">Last updated July 20, 2025</p>
+      </div>
+    </aside>
+
+    <aside id="settingsView-panel" class="right-panel w-80 bg-slate-200 p-4 text-sm overflow-y-auto hidden">
+      <h4 class="uppercase font-semibold mb-3">Preferences</h4>
+      <ul class="space-y-2">
+        <li>
+          <label class="flex items-center">
+            <input type="checkbox" class="mr-2"> Enable notifications
+          </label>
+        </li>
+        <li>
+          <label class="flex items-center">
+            <input type="checkbox" class="mr-2" checked> Dark mode
+          </label>
+        </li>
+        <li>
+          <label class="flex items-center">
+            <input type="checkbox" class="mr-2"> Experimental Features
+          </label>
+        </li>
+      </ul>
+
+      <h4 class="uppercase font-semibold mt-6 mb-3">Account</h4>
+      <p><strong>Email:</strong> user@example.com</p>
+      <button class="mt-2 text-blue-600 hover:underline text-sm">Change password</button>
+    </aside>
+
+  </main>
+</body>
+
+</html>
